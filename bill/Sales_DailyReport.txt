@@ -1,0 +1,45 @@
+)
+# Data Analysis 
+    def sales_report(self):
+        bill_dir = r'C:\Users\DELL\Desktop\Inventory-Management-System-main\bill'
+        sales_data = []
+
+        for file_name in os.listdir(bill_dir):
+            if file_name.endswith('.txt'):
+                file_path = os.path.join(bill_dir, file_name)
+                with open(file_path, 'r') as f:
+                    lines = f.readlines()
+
+                date_str = ''
+                net_pay = 0.0
+                for line in lines:
+                    if 'Date:' in line:
+                        try:
+                            date_str = line.strip().split('Date:')[-1].strip()
+                            date_obj = datetime.strptime(date_str, "%d/%m/%Y")  # <-- Correct format here
+                        except ValueError:
+                            print(f"Skipping file {file_name}: Invalid date format '{date_str}'")
+                            break
+                    elif 'Net Pay' in line:
+                        try:
+                            net_pay = float(line.strip().split('Rs.')[-1].strip())
+                        except:
+                            print(f"Skipping file {file_name}: Invalid Net Pay value")
+                            break
+
+                if date_str and net_pay > 0:
+                    sales_data.append({'date': date_obj.date(), 'amount': net_pay})
+
+        if not sales_data:
+            messagebox.showinfo("No Data", "No Valid sales data found for analysis", parent=self.root)
+            return
+
+        # Convert to DataFrame
+        df = pd.DataFrame(sales_data)
+        daily_sales = df.groupby('date')['amount'].sum().reset_index()
+
+        # Plot
+       # fig = px.bar(daily_sales, x='date', y='amount', title='Daily Sales Report', labels={'amount': 'Total Sales'}, text='amount')
+       # fig.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+       # fig.update_layout(xaxis_title='Date', yaxis_title='Sales Amount', uniformtext_minsize=8, uniformtext_mode='hide')
+       # fig.show()  
